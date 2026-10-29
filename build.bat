@@ -49,31 +49,8 @@ echo Building iDownload %VER% ...
 
 %PY% tools\make_icon.py >nul
 
-rem bundle ffmpeg so the exe stays standalone (needed to merge video+audio / make mp3)
-set "FFARG="
-for /f "delims=" %%f in ('where ffmpeg 2^>nul') do if not defined FFARG set "FFARG=--add-binary ""%%f;."""
-if not defined FFARG echo WARNING: ffmpeg not found on PATH - the exe will not be able to merge HD video or make MP3s.
-
-rem bundle Node.js: yt-dlp needs a JavaScript runtime to unlock YouTube formats (adds ~80 MB)
-for /f "delims=" %%n in ('where node 2^>nul') do if not defined FFARG2 set "FFARG2=--add-binary ""%%n;."""
-if not defined FFARG2 echo WARNING: node.exe not found on PATH - YouTube downloads in the exe will need Node.js or Deno installed.
-
-%PY% -m PyInstaller --noconfirm --clean --onefile --windowed ^
-    --name iDownload ^
-    --icon assets\icon.ico ^
-    --add-data "assets\icon.ico;assets" ^
-    --add-data "assets\hero.png;assets" ^
-    --version-file version_info.txt ^
-    --collect-all customtkinter ^
-    --collect-submodules yt_dlp ^
-    --collect-all gdown ^
-    --collect-all webview ^
-    --collect-all yt_dlp_ejs ^
-    %FFARG% %FFARG2% ^
-    app.py || goto :fail
-
-copy /y "dist\iDownload.exe" "dist\iDownload-v%VER%.exe" >nul
-del "dist\iDownload.exe" >nul 2>nul
+rem the PyInstaller call lives in Python so cmd can't mangle paths (bundles ffmpeg + node, renames the exe)
+%PY% tools\build_exe.py || goto :fail
 
 echo.
 echo ================================================
