@@ -1,0 +1,6 @@
+yt-dlp[default]
+gdown>=6
+requests
+customtkinter
+pillow
+pywebview

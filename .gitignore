@@ -1,0 +1,15 @@
+# environments and build output
+.venv/
+build/
+dist/
+__pycache__/
+*.pyc
+*.spec
+
+# local downloads and anything that could hold a login
+downloads/
+downloads_test/
+*.part
+cookies*.txt
+*cookies*.txt
+youtube_cookies.txt
