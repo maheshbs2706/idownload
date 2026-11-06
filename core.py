@@ -87,9 +87,18 @@ def get_drive(url, out_dir, cb, cancel):
             m = meter["m"] = Meter(total, cb, None, cancel)
         m.add(done - m.done)
 
-    # fuzzy=True pulls the file id out of any share-link format; gdown handles the virus-scan confirm page
-    path = gdown.download(url=url, output=os.path.join(out_dir, ""), quiet=True, fuzzy=True, resume=True,
-                          progress=progress, cancel=cancel)
+    # Pull the file id out of any share-link format (/file/d/<id>/view, open?id=<id>, uc?id=<id>); gdown handles
+    # the virus-scan confirm page for large files.
+    m = re.search(r"/d/([\w-]{15,})|[?&]id=([\w-]{15,})", url)
+    if not m:
+        raise RuntimeError("Couldn't find a Google Drive file ID in this link")
+    try:
+        path = gdown.download(id=m.group(1) or m.group(2), output=os.path.join(out_dir, ""), quiet=True,
+                              resume=True, progress=progress, cancel=cancel)
+    except Exception:
+        if cancel.is_set():  # gdown raises its own DownloadCancelled when we cancel
+            raise Cancelled()
+        raise
     if cancel.is_set():
         raise Cancelled()
     if not path:
